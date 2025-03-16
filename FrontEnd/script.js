@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setupPortfolioView() {
         if (isAdmin()) {
-            filtersContainer.remove(); // Supprime les filtres
+            filtersContainer.style.display = "none"; // Cache les filtres pour l’admin
             addAdminEditButton();
             updateNavBar("logout");
         } else {
@@ -22,16 +22,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function ensureProjectsAreVisible() {
+        if (gallery.innerHTML.trim() === "") {
+            fetchProjects();
+        }
+    }
+
     function addAdminEditButton() {
         const editButton = document.createElement("button");
         editButton.textContent = "Modifier";
         editButton.classList.add("edit-btn");
-        editButton.addEventListener("click", () => {
-            alert("Mode édition activé");
-        });
+        editButton.addEventListener("click", openModal);
         
-        const title = document.querySelector("#portfolio h2");
-        title.insertAdjacentElement("afterend", editButton);
+        if (!document.querySelector(".edit-btn")) {
+            const title = document.querySelector("#portfolio h2");
+            title.insertAdjacentElement("afterend", editButton);
+        }        
     }
 
     function updateNavBar(type) {
@@ -65,6 +71,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function openModal() {
+        const modal = document.createElement("div");
+        modal.classList.add("modal-overlay");
+        modal.innerHTML = `
+            <div class="modal-container">
+                <span class="close-modal">&times;</span>
+                <h2>Galerie photo</h2>
+                <div class="modal-gallery"></div>
+                <button class="add-photo">Ajouter une photo</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    
+        // Vérifie que les projets sont chargés dans la modale
+        displayProjectsInModal(allProjects);
+    
+        document.querySelector(".close-modal").addEventListener("click", () => {
+            modal.remove();
+        });
+    
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
+    
+
     async function fetchProjects() {
         try {
             const response = await fetch(apiUrl);
@@ -73,6 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             allProjects = await response.json();
             displayProjects(allProjects);
+            if (document.querySelector(".modal-gallery")) {
+                displayProjectsInModal(allProjects);
+            }
+
         } catch (error) {
             console.error("Erreur :", error);
         }
@@ -144,6 +182,53 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function displayProjectsInModal(projects) {
+        const modalGallery = document.querySelector(".modal-gallery");
+        if (!modalGallery) return; // Vérifie que l'élément existe
+    
+        modalGallery.innerHTML = ""; // Vide la galerie avant d'ajouter les éléments
+    
+        projects.forEach(project => {
+            const figure = document.createElement("figure");
+            figure.classList.add("modal-item");
+    
+            const img = document.createElement("img");
+            img.src = project.imageUrl;
+            img.alt = project.title;
+    
+            const deleteIcon = document.createElement("span");
+            deleteIcon.classList.add("delete-icon");
+            deleteIcon.innerHTML = "🗑";
+            deleteIcon.addEventListener("click", () => deleteProject(project.id));
+    
+            figure.appendChild(img);
+            figure.appendChild(deleteIcon);
+            modalGallery.appendChild(figure);
+        });
+    }    
+    
+    async function deleteProject(projectId) {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+    
+            const response = await fetch(`${apiUrl}/${projectId}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+    
+            if (!response.ok) {
+                throw new Error("Erreur lors de la suppression du projet");
+            }
+    
+            // Mettre à jour les projets après suppression
+            fetchProjects();
+        } catch (error) {
+            console.error("Erreur :", error);
+        }
+    }    
+
     setupPortfolioView();
+    ensureProjectsAreVisible();
     fetchProjects();
 });
