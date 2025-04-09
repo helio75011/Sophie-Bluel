@@ -84,8 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         document.body.appendChild(modal);
     
-        // Vérifie que les projets sont chargés dans la modale
-        displayProjectsInModal(allProjects);
+        // Ajout de l'événement pour ouvrir la modale d'ajout de photo
+        document.querySelector(".add-photo").addEventListener("click", openAddPhotoModal);
     
         document.querySelector(".close-modal").addEventListener("click", () => {
             modal.remove();
@@ -96,6 +96,51 @@ document.addEventListener("DOMContentLoaded", () => {
                 modal.remove();
             }
         });
+    
+        displayProjectsInModal(allProjects);
+    }    
+    
+    function openAddPhotoModal() {
+        const modal = document.querySelector(".modal-container");
+        modal.innerHTML = `
+            <span class="close-modal">&times;</span>
+            <span class="back-modal">&larr;</span>
+            <h2>Ajout photo</h2>
+            <form id="photoForm">
+                <div class="upload-section">
+                    <label for="fileInput" class="upload-label">
+                        <span class="upload-text">+ Ajouter photo</span>
+                        <input type="file" id="fileInput" accept="image/png, image/jpeg" required hidden>
+                    </label>
+                    <img id="previewImage" class="hidden" />
+                </div>
+                <label for="title">Titre</label>
+                <input type="text" id="title" required>
+                <label for="category">Catégorie</label>
+                <select id="category" required></select>
+                <button type="submit" class="validate-btn" disabled>Valider</button>
+            </form>
+        `;
+    
+        // Retour à la modale précédente
+        document.querySelector(".back-modal").addEventListener("click", openModal);
+    
+        // Fermeture de la modale
+        document.querySelector(".close-modal").addEventListener("click", () => {
+            document.querySelector(".modal-overlay").remove();
+        });
+    
+        // Charger les catégories
+        fetchCategoriesForSelect();
+    
+        // Activation du bouton seulement si tout est rempli
+        document.getElementById("photoForm").addEventListener("input", validateForm);
+    
+        // Gestion de l'affichage de l'image sélectionnée
+        document.getElementById("fileInput").addEventListener("change", previewSelectedImage);
+    
+        // Ajout de l'événement pour soumettre le formulaire
+        document.getElementById("photoForm").addEventListener("submit", submitPhoto);
     }
     
 
@@ -228,6 +273,117 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }    
 
+    async function fetchCategoriesForSelect() {
+        try {
+            const response = await fetch("http://localhost:5678/api/categories");
+            if (!response.ok) {
+                throw new Error("Erreur lors de la récupération des catégories");
+            }
+            const categories = await response.json();
+            console.log("📌 Catégories chargées :", categories); // 🔍 Debug ici
+    
+            const select = document.getElementById("category");
+            select.innerHTML = ""; // Vide avant d'ajouter
+        
+            categories.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category.id;
+                option.textContent = category.name;
+                select.appendChild(option);
+            });
+    
+        } catch (error) {
+            console.error("Erreur :", error);
+        }
+    }    
+
+    function previewSelectedImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.getElementById("previewImage");
+                preview.src = e.target.result;
+                preview.classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function validateForm() {
+        const file = document.getElementById("fileInput").files.length > 0;
+        const title = document.getElementById("title").value.trim() !== "";
+        const category = document.getElementById("category").value !== "";
+    
+        document.querySelector(".validate-btn").disabled = !(file && title && category);
+    }
+    
+    async function submitPhoto(event) {
+        event.preventDefault();
+    
+        const imageInput = document.getElementById("fileInput");
+        const titleInput = document.getElementById("title");
+        const categorySelect = document.getElementById("category");
+    
+        const imageFile = imageInput.files[0];
+        const titleValue = titleInput.value.trim();
+        const categoryValue = categorySelect.value;
+    
+        // Vérifications
+        if (!imageFile) {
+            alert("Veuillez sélectionner une image.");
+            return;
+        }
+    
+        if (!titleValue) {
+            alert("Veuillez saisir un titre.");
+            return;
+        }
+    
+        if (!categoryValue || isNaN(parseInt(categoryValue))) {
+            alert("Veuillez choisir une catégorie valide.");
+            return;
+        }
+    
+        // Construction du FormData
+        const formData = new FormData();
+        formData.append("image", imageFile); // 🥇 L'image d'abord
+        formData.append("title", titleValue);
+        formData.append("category", categoryValue); // ✅ clé conforme à l'API si elle attend "category"
+    
+        console.log("📦 FormData à envoyer :", [...formData.entries()]);
+    
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Vous devez être connecté.");
+                return;
+            }
+    
+            const response = await fetch("http://localhost:5678/api/works", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData // Ne surtout pas définir Content-Type ici !
+            });
+    
+            const result = await response.json();
+    
+            if (!response.ok) {
+                throw new Error(`Erreur ${response.status} : ${JSON.stringify(result)}`);
+            }
+    
+            alert("Photo ajoutée avec succès !");
+            fetchProjects();
+            openModal();
+    
+        } catch (error) {
+            console.error("🚨 Erreur lors de l'envoi :", error);
+            alert("L'envoi a échoué : " + error.message);
+        }
+    }    
+    
     setupPortfolioView();
     ensureProjectsAreVisible();
     fetchProjects();
