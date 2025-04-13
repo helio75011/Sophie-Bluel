@@ -326,11 +326,15 @@ footer nav ul {
     background: white;
     width: 450px;
     max-width: 90%;
-    padding: 20px;
+    padding: 30px 100px;
     border-radius: 10px;
     box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.1);
     text-align: center;
     position: relative;
+}
+
+.modal-container hr {
+    margin: 40px 0px;
 }
 
 /* Bouton fermer */
@@ -346,6 +350,8 @@ footer nav ul {
     font-family: 'Work Sans';
     font-weight: initial;
     color: #000;
+    margin-top: 30px;
+    margin-bottom: 25px;
 }
 
 /* Ajustement de la taille des images */
@@ -355,7 +361,7 @@ footer nav ul {
     gap: 10px;
     padding: 20px 0;
     max-height: 350px;
-    overflow-y: auto;
+    /* overflow-y: auto; */
 }
 
 .modal-gallery figure {
@@ -422,7 +428,7 @@ footer nav ul {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #f8f8f8;
+    background: #E8F1F6;
     padding: 20px;
     border-radius: 10px;
 }
@@ -435,11 +441,25 @@ footer nav ul {
     padding: 10px;
 }
 
+.upload-label i {
+    color: #B9C5CC;
+}
+
 .upload-text {
-    background: #ddd;
-    padding: 8px 12px;
-    border-radius: 5px;
+    background: #CBD6DC;
+    padding: 12px 32px;
+    border-radius: 25px;
     cursor: pointer;
+    margin: 10px 0px;
+}
+
+.upload-text p {
+    font-size: 15px;
+    color: #306685;
+}
+
+#taille-p {
+    font-size: 10px;
 }
 
 #previewImage {
