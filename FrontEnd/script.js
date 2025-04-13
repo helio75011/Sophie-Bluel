@@ -79,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="close-modal">&times;</span>
                 <h2 id="G-PH">Galerie photo</h2>
                 <div class="modal-gallery"></div>
+                <hr>
                 <button class="add-photo">Ajouter une photo</button>
             </div>
         `;
@@ -109,8 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <form id="photoForm">
                 <div class="upload-section">
                     <label for="fileInput" class="upload-label">
-                        <span class="upload-text">+ Ajouter photo</span>
+                        <i class="fa-regular fa-image fa-5x"></i>
+                        <span class="upload-text">
+                            <p>+ Ajouter photo</p>
+                        </span>
                         <input type="file" id="fileInput" accept="image/png, image/jpeg" required hidden>
+                        <p id="taille-p">jpg, png : 4mo max</p>
                     </label>
                     <img id="previewImage" class="hidden" />
                 </div>
