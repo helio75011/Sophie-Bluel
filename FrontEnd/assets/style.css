@@ -126,9 +126,17 @@ li a:hover {
 #introduction p {
 	margin-bottom: 0.5em;
 }
+
+#titres-login {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+}
+
 #portfolio h2 {
 	text-align: center;
 	margin-bottom: 1em;
+    margin-left: 100px;
 }
 
 .filters {
@@ -288,12 +296,11 @@ footer nav ul {
 .edit-btn {
     background: none;
     border: none;
-    color: #1D6154;
+    color: #000;
     font-size: 16px;
     cursor: pointer;
     margin-left: 10px;
-    font-weight: bold;
-    text-decoration: underline;
+    font-family: 'Work Sans';
 }
 
 .edit-btn:hover {
@@ -335,6 +342,12 @@ footer nav ul {
     cursor: pointer;
 }
 
+#G-PH {
+    font-family: 'Work Sans';
+    font-weight: initial;
+    color: #000;
+}
+
 /* Ajustement de la taille des images */
 .modal-gallery {
     display: grid;
@@ -360,6 +373,7 @@ footer nav ul {
 
 /* Bouton Ajouter une photo */
 .add-photo {
+    font-family: 'Syne';
     display: block;
     width: 200px;
     margin: 20px auto;

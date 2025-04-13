@@ -28,18 +28,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function addAdminEditButton() {
+    function addAdminEditButton() { 
         const editButton = document.createElement("button");
-        editButton.textContent = "Modifier";
+        editButton.innerHTML = '<i class="fa fa-edit"></i> modifier';
         editButton.classList.add("edit-btn");
         editButton.addEventListener("click", openModal);
-        
+    
         if (!document.querySelector(".edit-btn")) {
             const title = document.querySelector("#portfolio h2");
             title.insertAdjacentElement("afterend", editButton);
         }        
     }
-
+        
     function updateNavBar(type) {
         const existingAuthItem = document.querySelector("#auth-item");
         if (existingAuthItem) {
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.innerHTML = `
             <div class="modal-container">
                 <span class="close-modal">&times;</span>
-                <h2>Galerie photo</h2>
+                <h2 id="G-PH">Galerie photo</h2>
                 <div class="modal-gallery"></div>
                 <button class="add-photo">Ajouter une photo</button>
             </div>
