@@ -525,3 +525,28 @@ input, select {
 .toast.error {
     background-color: #e74c3c;
 }
+
+.hidden-login-title {
+    display: initial !important;
+}
+
+.no-margin-left {
+    margin-left: 0 !important;
+}
+
+#APT {
+    font-family: 'Work Sans';
+    font-weight: normal;
+    font-size: 30px;
+    color: #000;
+}
+
+.back-modal {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    text-shadow: 0 0 1px black;
+}

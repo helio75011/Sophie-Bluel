@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => { 
     const gallery = document.querySelector(".gallery");
     const filtersContainer = document.querySelector(".filters");
     const portfolioSection = document.querySelector("#portfolio");
@@ -12,15 +12,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupPortfolioView() {
+        const loginTitle = document.querySelector("#titres-login");
+        const portfolioTitle = document.querySelector("#portfolio h2");
+    
         if (isAdmin()) {
-            filtersContainer.style.display = "none"; // Cache les filtres pour l’admin
+            filtersContainer.style.display = "none";
             addAdminEditButton();
             updateNavBar("logout");
+    
+            // ✅ Mode admin → appliquer les styles
+            if (loginTitle) loginTitle.style.display = "flex";
+            if (portfolioTitle) portfolioTitle.style.marginLeft = "100px";
         } else {
             fetchCategories();
             updateNavBar("login");
+    
+            // ✅ Mode visiteur → retour à l’état initial
+            if (loginTitle) loginTitle.style.display = "initial";
+            if (portfolioTitle) portfolioTitle.style.marginLeft = "initial";
         }
-    }
+    }    
 
     function ensureProjectsAreVisible() {
         if (gallery.innerHTML.trim() === "") {
@@ -71,6 +82,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    async function isServerOnline() {
+        try {
+            const response = await fetch("http://localhost:5678/api/categories", { method: "GET" });
+            return response.ok;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function openModal() {
         const modal = document.createElement("div");
         modal.classList.add("modal-overlay");
@@ -86,7 +106,27 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(modal);
     
         // Ajout de l'événement pour ouvrir la modale d'ajout de photo
-        document.querySelector(".add-photo").addEventListener("click", openAddPhotoModal);
+        document.querySelector(".add-photo").addEventListener("click", async () => {
+            const isOnline = await isServerOnline();
+        
+            if (isOnline) {
+                openAddPhotoModal();
+            } else {
+                const modalContainer = document.querySelector(".modal-container");
+                const existingError = document.querySelector(".photo-modal-error");
+        
+                if (!existingError && modalContainer) {
+                    const errorMsg = document.createElement("p");
+                    errorMsg.textContent = "Impossible d’ouvrir la modale d’ajout : le serveur est inaccessible.";
+                    errorMsg.classList.add("photo-modal-error");
+                    errorMsg.style.color = "red";
+                    errorMsg.style.marginTop = "10px";
+                    modalContainer.appendChild(errorMsg);
+                }
+        
+                showToast("Erreur réseau : serveur inaccessible", "error");
+            }
+        });        
     
         document.querySelector(".close-modal").addEventListener("click", () => {
             modal.remove();
@@ -106,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.innerHTML = `
             <span class="close-modal">&times;</span>
             <span class="back-modal">&larr;</span>
-            <h2>Ajout photo</h2>
+            <h2 id="APT">Ajout photo</h2>
             <form id="photoForm">
                 <div class="upload-section">
                     <label for="fileInput" class="upload-label">
@@ -130,8 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
         // Retour à la modale précédente
         document.querySelector(".back-modal").addEventListener("click", () => {
-            document.querySelector(".modal-overlay").remove(); // 🔴 Ferme la modale actuelle
-            openModal(); // 🟢 Réouvre la modale Galerie photo
+            closeAllModals();  // Supprime la modale en cours
+            openModal();       // Réouvre celle de la galerie
         });        
     
         // Fermeture de la modale
@@ -292,11 +332,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error("Erreur lors de la récupération des catégories");
             }
             const categories = await response.json();
-            console.log("📌 Catégories chargées :", categories); // 🔍 Debug ici
+            console.log("📌 Catégories chargées :", categories);
     
             const select = document.getElementById("category");
-            select.innerHTML = ""; // Vide avant d'ajouter
-        
+            select.innerHTML = "";
+    
             categories.forEach(category => {
                 const option = document.createElement("option");
                 option.value = category.id;
@@ -305,9 +345,24 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     
         } catch (error) {
-            console.error("Erreur :", error);
+            console.error("🚨 Erreur fetch catégories :", error);
+    
+            // 🔻 Création d’un message d’erreur dans la modale
+            const form = document.getElementById("photoForm");
+            const existingError = document.querySelector(".category-fetch-error");
+            if (!existingError && form) {
+                const errorMsg = document.createElement("p");
+                errorMsg.textContent = "Impossible de charger les catégories. Le serveur ne répond pas.";
+                errorMsg.classList.add("category-fetch-error");
+                errorMsg.style.color = "red";
+                errorMsg.style.marginTop = "10px";
+                form.appendChild(errorMsg);
+            }
+    
+            // Bonus UX : petit toast
+            showToast("Erreur réseau : impossible de charger les catégories", "error");
         }
-    }    
+    }     
 
     function previewSelectedImage(event) {
         const file = event.target.files[0];
@@ -323,7 +378,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function validateForm() {
-        console.log("🔁 validateForm appelée");
         const file = document.getElementById("fileInput").files.length > 0;
         const title = document.getElementById("title").value.trim() !== "";
         const category = document.getElementById("category").value !== "";
@@ -336,8 +390,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (modalOverlay) {
             modalOverlay.remove();
         }
-    }   
-
+    }
+    
     function showToast(message, type = "info") {
         const toast = document.createElement("div");
         toast.className = `toast ${type}`;
@@ -347,25 +401,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }    
     
     async function submitPhoto(event) {
-
+        console.log("🟢 submitPhoto appelé !");
         event.preventDefault();
     
         const imageInput = document.getElementById("fileInput");
         const titleInput = document.getElementById("title");
         const categorySelect = document.getElementById("category");
         const errorText = document.querySelector(".form-error");
-        console.log("🔍 form-error trouvé :", errorText); // <-- Ajoute cette ligne
+        console.log("🔍 form-error trouvé :", errorText);
     
         const imageFile = imageInput.files[0];
         const titleValue = titleInput.value.trim();
         const categoryValue = categorySelect.value;
     
+        // Reset du message
+        // errorText.classList.add("hidden");
         console.log("🟠 SUBMIT bouton cliqué !");
         console.log("📷 Image ? ", imageInput.files.length > 0);
         console.log("📝 Titre ? ", titleValue);
         console.log("📂 Catégorie ? ", categoryValue);
-        // Reset du message
-        errorText.classList.add("hidden");
+        console.log("🔁 validateForm appelée");
     
         if (!imageFile || !titleValue || !categoryValue || isNaN(parseInt(categoryValue))) {
             errorText.textContent = "Veuillez remplir tous les champs et ajouter une photo.";
@@ -399,18 +454,22 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) {
                 throw new Error(`Erreur ${response.status} : ${JSON.stringify(result)}`);
             }
-
-            showToast("Photo ajoutée avec succès !", "success");
     
-            await fetchProjects(); // recharge les projets dans la galerie principale
-            closeAllModals(); // ✅ nouvelle fonction qu’on va créer
-
+            showToast("Photo ajoutée avec succès !", "success");
+            await fetchProjects();
+            closeAllModals();
         } catch (error) {
             console.error("🚨 Erreur lors de l'envoi :", error);
-            errorText.textContent = "L'envoi a échoué : " + error.message;
+        
+            if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+                errorText.textContent = "Impossible de se connecter au serveur. Veuillez réessayer plus tard.";
+            } else {
+                errorText.textContent = "L'envoi a échoué : " + error.message;
+            }
+        
             errorText.classList.remove("hidden");
-        }
-    }       
+        }        
+    }  
     
     setupPortfolioView();
     ensureProjectsAreVisible();
