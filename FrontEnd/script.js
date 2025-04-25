@@ -14,22 +14,26 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupPortfolioView() {
         const loginTitle = document.querySelector("#titres-login");
         const portfolioTitle = document.querySelector("#portfolio h2");
+        const modeEditionBar = document.getElementById("mode-edition-bar");
+        const body = document.body;
     
         if (isAdmin()) {
             filtersContainer.style.display = "none";
             addAdminEditButton();
             updateNavBar("logout");
     
-            // ✅ Mode admin → appliquer les styles
             if (loginTitle) loginTitle.style.display = "flex";
             if (portfolioTitle) portfolioTitle.style.marginLeft = "100px";
+            if (modeEditionBar) modeEditionBar.style.display = "block";
+            if (body) body.style.paddingTop = "10px"; // 👈 ajoute le padding
         } else {
             fetchCategories();
             updateNavBar("login");
     
-            // ✅ Mode visiteur → retour à l’état initial
             if (loginTitle) loginTitle.style.display = "initial";
             if (portfolioTitle) portfolioTitle.style.marginLeft = "initial";
+            if (modeEditionBar) modeEditionBar.style.display = "none";
+            if (body) body.style.paddingTop = "initial"; // 👈 retire le padding
         }
     }    
 
@@ -198,7 +202,9 @@ document.addEventListener("DOMContentLoaded", () => {
         photoForm.addEventListener("submit", (e) => submitPhoto(e));
     }
     
-
+/**
+ * 
+ */
     async function fetchProjects() {
         try {
             const response = await fetch(apiUrl);
@@ -229,6 +235,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    /**
+     * 
+     * @param {*} categories 
+     */
     function createFilterButtons(categories) {
         filtersContainer.innerHTML = '';
         const allBtn = document.createElement("button");
