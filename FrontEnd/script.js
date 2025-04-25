@@ -159,14 +159,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     </label>
                     <img id="previewImage" class="hidden" />
                 </div>
-                <label for="title">Titre</label>
+                <label for="title" id="titre-AP">Titre</label>
                 <input type="text" id="title" required>
-                <label for="category">Catégorie</label>
+                <label for="category" id="cath-AP">Catégorie</label>
                 <select id="category" required></select>
+                <hr id="hr-AP">
                 <button type="submit" class="validate-btn">Valider</button>
                 <p class="form-error hidden">Veuillez remplir tous les champs et ajouter une photo.</p>
             </form>
         `;
+
+        document.getElementById("previewImage").addEventListener("click", () => {
+            document.getElementById("fileInput").click();
+        });        
     
         // Retour à la modale précédente
         document.querySelector(".back-modal").addEventListener("click", () => {
@@ -372,10 +377,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 const preview = document.getElementById("previewImage");
                 preview.src = e.target.result;
                 preview.classList.remove("hidden");
+    
+                // 👇 Cacher le label
+                const uploadLabel = document.querySelector(".upload-label");
+                if (uploadLabel) uploadLabel.style.display = "none";
+    
+                // 👇 Supprimer le padding de la section
+                const uploadSection = document.querySelector(".upload-section");
+                if (uploadSection) uploadSection.style.padding = "0";
             };
             reader.readAsDataURL(file);
         }
-    }
+    }     
 
     function validateForm() {
         const file = document.getElementById("fileInput").files.length > 0;
